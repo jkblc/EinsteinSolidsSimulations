@@ -69,23 +69,26 @@ q_total_large = 100
 
 # Energy range for solid A
 E_A_values_large = np.arange(0, q_total_large + 1)
-Omega_A_large = np.zeros_like(E_A_values_large, dtype=float)
-Omega_B_large = np.zeros_like(E_A_values_large, dtype=float)
-Omega_total_large = np.zeros_like(E_A_values_large, dtype=float)
+ln_Omega_total_large = np.zeros_like(E_A_values_large, dtype=float)
+
+# Define function for ln_Omega
+def ln_Omega(N, q):
+    if q == 0:
+        return 0
+    else:
+        return (q + N) * log(q + N) - q * log(q) - N * log(N)
 
 # Calculations
 for i, q_A in enumerate(E_A_values_large):
     q_B = q_total_large - q_A  # Energy units in solid B
+    
+    ln_Omega_A = ln_Omega(N_A_large, q_A)
+    ln_Omega_B = ln_Omega(N_B_large, q_B)
+    ln_Omega_total_large[i] = ln_Omega_A + ln_Omega_B
 
-    # Using Stirling's approximation for large N and q
-    ln_Omega_A = (q_A + N_A_large) * log(q_A + N_A_large) - q_A * log(q_A) - N_A_large * log(N_A_large)
-    ln_Omega_B = (q_B + N_B_large) * log(q_B + N_B_large) - q_B * log(q_B) - N_B_large * log(N_B_large)
-    Omega_A_large[i] = np.exp(ln_Omega_A)
-    Omega_B_large[i] = np.exp(ln_Omega_B)
-    Omega_total_large[i] = Omega_A_large[i] * Omega_B_large[i]
-
-# Normalize to prevent overflow
-Omega_total_large /= np.max(Omega_total_large)
+# To prevent overflow in exp, subtract the maximum ln_Omega_total_large
+ln_Omega_total_large_shifted = ln_Omega_total_large - np.max(ln_Omega_total_large)
+Omega_total_large = np.exp(ln_Omega_total_large_shifted)
 
 # Probability distribution
 P_large = Omega_total_large / np.sum(Omega_total_large)
