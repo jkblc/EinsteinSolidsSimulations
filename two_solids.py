@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from math import comb, log, factorial
+from math import comb, log
 
 # Constants
 k_B = 1.0  # Boltzmann constant (set to 1 for simplicity)
@@ -105,4 +105,43 @@ plt.title('Probability Distribution for Large N')
 plt.xlabel('Energy of Solid A (E_A)')
 plt.ylabel('Probability P(E_A)')
 plt.grid(True)
+plt.show()
+
+# Constants
+k_B = 1.0  # Boltzmann constant
+epsilon = 1.0  # Energy unit (set to 1 for simplicity)
+
+# Parameters for part (e)
+N = 50  # Number of oscillators
+q_max = 100  # Maximum energy units
+
+# Arrays to store results
+q_values = np.arange(1, q_max + 1)  # Start from q = 1 to avoid log(0)
+S_values = np.zeros_like(q_values, dtype=float)
+E_values = q_values * epsilon
+T_values = np.zeros_like(q_values, dtype=float)
+C_V_values = np.zeros_like(q_values, dtype=float)
+
+# Calculate entropy using Stirling's approximation
+for i, q in enumerate(q_values):
+    # Entropy S = k_B * ln(Ω)
+    ln_Omega = (q + N) * log(q + N) - q * log(q) - N * log(N)
+    S_values[i] = k_B * ln_Omega
+
+# Calculate temperature T using 1/T = dS/dE
+dS_dE = np.gradient(S_values, epsilon)
+T_values = 1 / dS_dE
+
+# Calculate heat capacity C_V = dE/dT
+dE_dT = np.gradient(E_values, T_values)
+C_V_values = dE_dT
+
+# Plot Heat Capacity vs. Temperature
+plt.figure(figsize=(10, 6))
+plt.plot(T_values, C_V_values, label=f'N = {N}')
+plt.title('Heat Capacity vs. Temperature for Einstein Solid (N=50)')
+plt.xlabel('Temperature (T)')
+plt.ylabel('Heat Capacity at Constant Volume (C_V)')
+plt.grid(True)
+plt.legend()
 plt.show()
