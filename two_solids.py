@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from math import comb, log
+from scipy.stats import norm, binom
 
 # Constants
 k_B = 1.0  # Boltzmann constant (set to 1 for simplicity)
@@ -57,7 +58,6 @@ print(f"Mean Energy of Solid A: {E_A_mean:.2f} units")
 # Plotting multiplicities with binomial distribution line
 plt.figure(figsize=(10, 6))
 plt.bar(E_A_values, Omega_total, color='skyblue', edgecolor='black', label='Total Microstates (Ω_total)')
-plt.plot(E_A_values, scaled_P_binomial, 'ro-', label='Scaled Binomial Distribution', linewidth=2)
 plt.title('Total Number of Microstates vs. Energy of Solid A')
 plt.xlabel('Energy of Solid A (E_A)')
 plt.ylabel('Total Number of Microstates (Ω_total)')
@@ -80,9 +80,9 @@ plt.grid(True)
 plt.show()
 
 # Updated Parameters
-N_A_large = 300
-N_B_large = 200
-q_total_large = 100
+N_A_large = 300000
+N_B_large = 200000
+q_total_large = 100000
 
 # Energy range for solid A
 E_A_values_large = np.arange(0, q_total_large + 1)
@@ -172,6 +172,50 @@ C_V_analytical = N * (1 / T_analytical) ** 2 * np.exp(1 / T_analytical) / (np.ex
 plt.figure(figsize=(10, 6))
 plt.plot(T_analytical, C_V_analytical, label='N')
 plt.title('Heat Capacity vs. Temperature for Einstein Solid (N=50)')
+plt.xlabel('Temperature (T)')
+plt.ylabel('Heat Capacity at Constant Volume (C_V)')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# Constants
+k_B = 1.0    # Boltzmann constant
+epsilon = 1.0  # Energy quantum
+
+# Parameters
+N = 50
+q_max = 100
+
+q_values = np.arange(0, q_max + 1)
+E_values = q_values * epsilon
+
+# Calculate entropy S(N, q)
+S_values = np.zeros_like(q_values, dtype=float)
+
+for i, q in enumerate(q_values):
+    if q == 0:
+        S_values[i] = 0.0
+    else:
+        ln_Omega = (q + N - 1) * log(q + N - 1) - q * log(q) - (N - 1) * log(N - 1)
+        S_values[i] = k_B * ln_Omega
+
+# Calculate temperature T analytically
+T_values = np.zeros_like(q_values, dtype=float)
+T_values[1:] = 1.0 / (k_B * np.log((q_values[1:] + N) / q_values[1:]))
+
+# Calculate heat capacity C_V analytically
+y_values = 1.0 / (k_B * T_values[1:])
+exp_y = np.exp(y_values)
+dq_dT = (N * exp_y) / ((exp_y - 1) ** 2) * (1 / (k_B * T_values[1:] ** 2))
+C_V_values = np.zeros_like(q_values, dtype=float)
+C_V_values[1:] = dq_dT
+
+# Plot heat capacity vs. temperature
+valid_indices = T_values > 0
+
+plt.figure(figsize=(10, 6))
+plt.plot(T_values[valid_indices], C_V_values[valid_indices], label=f'N = {N}')
+plt.title('Heat Capacity vs. Temperature for an Einstein Solid (N=50)')
 plt.xlabel('Temperature (T)')
 plt.ylabel('Heat Capacity at Constant Volume (C_V)')
 plt.grid(True)
